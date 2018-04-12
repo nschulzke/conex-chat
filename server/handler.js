@@ -11,7 +11,7 @@ function getWs(send, sockets, ws) {
     handle: function(msg) {
       try {
         msg = JSON.parse(msg);
-        if (!authorized && msg.action !== 'authorize') {
+        if (!authorized && msg.action !== 'activate') {
           this.unauthorized();
         } else if (this.actions[msg.action] !== undefined && msg.action != 'data') {
           this.actions[msg.action](msg);
@@ -30,7 +30,7 @@ function getWs(send, sockets, ws) {
     unauthorized: function() {
       send({
         status: 403,
-        message: "Must send authorize action.",
+        message: "Must send activate.",
       });
     },
     invalid: function() {
@@ -43,12 +43,12 @@ function getWs(send, sockets, ws) {
       data: {
         user: {},
       },
-      authorize: function(msg) {
-        db.authorizeUser(
-          api('ws', send, 'authorized').success((user) => {
+      activate: function(msg) {
+        db.activateUser(
+          api('ws', send, 'activated').success((user) => {
             this.data.user = user;
             authorized = true;
-            sockets[user.id] = ws
+            sockets[user.id] = ws;
           }).error(() => {
             authorized = false;
           }), {

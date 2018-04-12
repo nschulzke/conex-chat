@@ -1,6 +1,7 @@
 module.exports = function(api, target, arg) {
   if (api === 'rest') return getRest(target);
   if (api === 'ws') return getWs(target, arg);
+  if (api == 'null') return getNull();
 }
 
 function getRest(res) {
@@ -64,5 +65,12 @@ function getWs(send, action) {
       this._error = callback;
       return this;
     }
+  }
+}
+
+function getNull() {
+  return {
+    onSuccess: () => {},
+    onError: () => {},
   }
 }

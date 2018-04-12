@@ -5,6 +5,7 @@ exports.up = function(knex, Promise) {
       table.string('username').notNullable();
       table.string('hash').notNullable();
       table.string('token');
+      table.boolean('active');
     }),
   ]);
 };

@@ -49,26 +49,20 @@ function send(ws, data) {
 }
 
 function broadcast(data) {
-  console.log('broadcast');
   for (var index in sockets)
     send(sockets[index], data);
 }
 
 app.ws('/api/messages', (ws, req) => {
+  let user;
   let _handler = handler('ws', (data) => {
     send(ws, data);
     if (data.result !== undefined) {
       if (data.result.to_id !== undefined) {
         send(sockets[data.result.to_id], data);
-      } else if (data.action === 'authorized' && data.success) {
-        broadcast({
-          action: 'loggedIn',
-          success: true,
-          result: {
-            id: data.result.id,
-            username: data.result.username,
-          }
-        });
+      } else if (data.action === 'activated' && data.success) {
+        user = data.result;
+        broadcast(data);
       }
     }
   }, sockets, ws);
@@ -81,9 +75,10 @@ app.ws('/api/messages', (ws, req) => {
     }
   });
 
-  function lostConnection() {
+  function closed() {
     clearInterval(pingTimeout);
     clearTimeout(ping);
+    db.deactivateUser(api('ws', (data) => broadcast(data), 'deactivated'), user);
     if (ws._socket)
       ws._socket.destroy();
   }
@@ -93,12 +88,16 @@ app.ws('/api/messages', (ws, req) => {
     if (ws.readyState === WebSocket.OPEN) {
       ws.ping();
       pingTimeout = setTimeout(() => {
-        lostConnection();
+        closed();
       }, 5000);
-    } else lostConnection();
+    } else closed();
   }, 5000);
 
   ws.on('pong', () => {
     clearTimeout(ping);
+  });
+
+  ws.on('close', () => {
+    closed();
   });
 });

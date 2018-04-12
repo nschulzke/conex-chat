@@ -1,6 +1,6 @@
 // knex setup
 const env = process.env.NODE_ENV || 'development';
-const config = require('./knexfile')[env];
+const config = require('../knexfile')[env];
 const knex = require('knex')(config);
 
 // bcrypt setup
@@ -90,20 +90,33 @@ module.exports = {
 
   getUsers: function(api, req) {
     authorize(req.token).then(user => {
-      return knex('users').select('id', 'username');
+      return knex('users').select('id', 'username', 'active');
     }).then(users => {
       api.onSuccess('users', users)
     }).catch(error => api.onError(error));
   },
 
-  authorizeUser: function(api, req) {
+  activateUser: function(api, req) {
     authorize(req.token).then(user => {
       api.onSuccess('user', {
         id: user.id,
         username: user.username,
-        token: user.token,
       });
+      knex('users').where('id', user.id).update({
+        active: true,
+      }).catch(error => console.log(error));
     }).catch(error => api.onError(error));
+  },
+
+  deactivateUser: function(api, user) {
+    knex('users').where('id', user.id).update({
+      active: false,
+    }).then((result) => {
+      api.onSuccess('user', {
+        id: user.id,
+        username: user.username,
+      });
+    }).catch(error => console.log(error));
   }
 }
 
