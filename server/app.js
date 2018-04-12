@@ -1,8 +1,9 @@
 // Express Setup
 const express = require('express');
 const bodyParser = require('body-parser');
-
 const app = express();
+const expressWs = require('express-ws')(app);
+
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({
   extended: false

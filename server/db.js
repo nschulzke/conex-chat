@@ -34,12 +34,12 @@ module.exports = {
       knex('users').where('id', user.id).update({
         token: token,
       }).catch(error => console.log(error));
-      api.success('user', {
+      api.onSuccess('user', {
         id: user.id,
         username: user.username,
         token: token,
       });
-    }).catch(error => api.catchError(error));
+    }).catch(error => api.onError(error));
   },
 
   registerUser: function(api, req) {
@@ -62,8 +62,8 @@ module.exports = {
     }).then(ids => {
       return knex('users').where('id', ids[0]).first().select('id', 'username', 'token');
     }).then(user => {
-      api.success('user', user);
-    }).catch(error => api.catchError(error));
+      api.onSuccess('user', user);
+    }).catch(error => api.onError(error));
   },
 
   sendMessage: function(api, req) {
@@ -74,8 +74,8 @@ module.exports = {
     }).then(ids => {
       return knex('messages').where('id', ids[0]).first();
     }).then(message => {
-      api.success('message', message);
-    }).catch(error => api.catchError(error));
+      api.onSuccess('message', message);
+    }).catch(error => api.onError(error));
   },
 
   getMessages: function(api, req) {
@@ -84,16 +84,26 @@ module.exports = {
         .where('from_id', user.id).orWhere('to_id', user.id)
         .select('username', 'text', 'sent_at');
     }).then(messages => {
-      api.success('messages', messages);
-    }).catch(error => api.catchError(error));
+      api.onSuccess('messages', messages);
+    }).catch(error => api.onError(error));
   },
 
   getUsers: function(api, req) {
     authorize(req.token).then(user => {
       return knex('users').select('id', 'username');
     }).then(users => {
-      api.success('users', users)
-    }).catch(error => api.catchError(error));
+      api.onSuccess('users', users)
+    }).catch(error => api.onError(error));
+  },
+
+  authorizeUser: function(api, req) {
+    authorize(req.token).then(user => {
+      api.onSuccess('user', {
+        id: user.id,
+        username: user.username,
+        token: user.token,
+      });
+    }).catch(error => api.onError(error));
   }
 }
 
