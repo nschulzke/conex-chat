@@ -47,6 +47,7 @@ function getWs(send, sockets, ws) {
         db.activateUser(
           api('ws', send, 'activated').success((user) => {
             this.data.user = user;
+            this.data.user.token = msg.token;
             authorized = true;
             sockets[user.id] = ws;
           }).error(() => {
@@ -57,6 +58,7 @@ function getWs(send, sockets, ws) {
         );
       },
       sendMessage: function(msg) {
+        console.log(msg);
         db.sendMessage(api('ws', send, 'sentMessage'), {
           from_id: this.data.user.id,
           to_id: msg.to_id,

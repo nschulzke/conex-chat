@@ -58,7 +58,7 @@ app.ws('/api/messages', (ws, req) => {
   let _handler = handler('ws', (data) => {
     send(ws, data);
     if (data.result !== undefined) {
-      if (data.result.to_id !== undefined) {
+      if (data.result.to_id !== undefined && data.result.from_id !== data.result.to_id) {
         send(sockets[data.result.to_id], data);
       } else if (data.action === 'activated' && data.success) {
         user = data.result;
@@ -78,7 +78,8 @@ app.ws('/api/messages', (ws, req) => {
   function closed() {
     clearInterval(pingTimeout);
     clearTimeout(ping);
-    db.deactivateUser(api('ws', (data) => broadcast(data), 'deactivated'), user);
+    if (user)
+      db.deactivateUser(api('ws', (data) => broadcast(data), 'deactivated'), user);
     if (ws._socket)
       ws._socket.destroy();
   }
