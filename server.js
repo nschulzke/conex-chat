@@ -22,9 +22,63 @@ const saltRounds = 10;
 
 app.listen(3000, () => console.log('Server listening on port 3000!'));
 
+function getRest(res) {
+  return {
+    res: res,
+    success: function(name, object) {
+      this.res.status(200).json({
+        [name]: object
+      });
+    },
+    catchError: function(error) {
+      if (error.status === undefined) {
+        error.status = 500;
+        console.log(error);
+      }
+      this.res.status(error.status).json(error);
+    }
+  }
+}
+
 app.post('/api/login', (req, res) => {
-  assertExist([req.body.username, req.body.password]).then(() => {
-    return knex('users').where('username', req.body.username).first();
+  loginUser(getRest(res), {
+    username: req.body.username,
+    password: req.body.password,
+  });
+});
+
+app.post('/api/users', (req, res) => {
+  registerUser(getRest(res), {
+    username: req.body.username,
+    password: req.body.password,
+  });
+});
+
+app.post('/api/messages', (req, res) => {
+  sendMessage(getRest(res), {
+    from_id: req.body.from_id,
+    to_id: req.body.to_id,
+    text: req.body.text,
+    sent_at: new Date(),
+    token: req.headers.authorization,
+  });
+});
+
+app.get('/api/messages', (req, res) => {
+  getMessages(getRest(res), {
+    token: req.headers.authorization,
+  });
+});
+
+app.get('/api/users', (req, res) => {
+  getUsers(getRest(res), {
+    token: req.headers.authorization,
+  });
+});
+
+function loginUser(api, req) {
+  assertExist([req.username, req.password]).then(() => {
+    return knex('users').where('username', req.username).first();
   }).then(user => {
     if (user === undefined) {
       throw {
@@ -32,33 +86,31 @@ app.post('/api/login', (req, res) => {
         message: "Invalid credentials"
       };
     }
-    return [bcrypt.compare(req.body.password, user.hash), user];
+    return [bcrypt.compare(req.password, user.hash), user];
   }).then(results => {
     result = results[0];
     user = results[1];
-    if (result) {
-      let token = crypto.randomBytes(48).toString('hex')
-      knex('users').where('id', user.id).update({
-        token: token,
-      });
-      success(res, 'user', {
-        id: user.id,
-        username: user.username,
-        token: token,
-      });
-    } else {
+    if (!result) {
       throw {
         status: 403,
         message: "Invalid credentials"
       };
     }
-    return;
-  }).catch(error => catchError(res, error));
-});
+    let token = crypto.randomBytes(48).toString('hex')
+    knex('users').where('id', user.id).update({
+      token: token,
+    }).catch(error => console.log(error));
+    api.success('user', {
+      id: user.id,
+      username: user.username,
+      token: token,
+    });
+  }).catch(error => api.catchError(error));
+}
 
-app.post('/api/users', (req, res) => {
-  assertExist([req.body.username, req.body.password]).then(() => {
-    return knex('users').where('username', req.body.username).first();
+function registerUser(api, req) {
+  assertExist([req.username, req.password]).then(() => {
+    return knex('users').where('username', req.username).first();
   }).then(user => {
     if (user !== undefined) {
       throw {
@@ -66,52 +118,50 @@ app.post('/api/users', (req, res) => {
         message: "Username already taken"
       };
     }
-    return bcrypt.hash(req.body.password, saltRounds);
+    return bcrypt.hash(req.password, saltRounds);
   }).then(hash => {
     return knex('users').insert({
-      username: req.body.username,
+      username: req.username,
       hash: hash,
       token: crypto.randomBytes(48).toString('hex'),
     });
   }).then(ids => {
     return knex('users').where('id', ids[0]).first().select('id', 'username', 'token');
   }).then(user => {
-    success(res, 'user', user);
-  }).catch(error => catchError(res, error));
-});
+    api.success('user', user);
+  }).catch(error => api.catchError(error));
+}
 
-app.post('/api/messages', (req, res) => {
-  compare(req.body.from_id, req.headers.authorization).then(user => {
-    return knex('messages').insert({
-      from_id: req.body.from_id,
-      to_id: req.body.to_id,
-      text: req.body.text,
-      sent_at: new Date()
-    });
+function sendMessage(api, req) {
+  console.log(req);
+  compare(req.from_id, req.token).then(user => {
+    delete req.token;
+    req.sent_at = new Date();
+    return knex('messages').insert(req);
   }).then(ids => {
     return knex('messages').where('id', ids[0]).first();
   }).then(message => {
-    success(res, 'message', message);
-  }).catch(error => catchError(res, error));
-});
+    api.success('message', message);
+  }).catch(error => api.catchError(error));
+}
 
-app.get('/api/messages', (req, res) => {
-  authorize(req.headers.authorization).then(user => {
+function getMessages(api, req) {
+  authorize(req.token).then(user => {
     return knex('users').join('messages', 'users.id', 'messages.from_id')
       .where('from_id', user.id).orWhere('to_id', user.id)
       .select('username', 'text', 'sent_at');
   }).then(messages => {
-    success(res, 'messages', messages);
-  }).catch(error => catchError(res, error));
-});
+    api.success('messages', messages);
+  }).catch(error => api.catchError(error));
+}
 
-app.get('/api/users', (req, res) => {
-  authorize(req.headers.authorization).then(user => {
+function getUsers(api, req) {
+  authorize(req.token).then(user => {
     return knex('users').select('id', 'username');
   }).then(users => {
-    success(res, 'users', users)
-  }).catch(error => catchError(res, error));
-});
+    api.success('users', users)
+  }).catch(error => api.catchError(error));
+}
 
 function assertExist(array) {
   return doExist(array).then(result => {
@@ -129,20 +179,6 @@ function doExist(array) {
     if (array[i] === undefined) return Promise.resolve(false);
   }
   return Promise.resolve(true);
-}
-
-function success(res, name, object) {
-  res.status(200).json({
-    [name]: object
-  });
-}
-
-function catchError(res, error) {
-  if (error.status === undefined) {
-    error.status = 500;
-    console.log(error);
-  }
-  res.status(error.status).json(error);
 }
 
 function authorize(token) {
