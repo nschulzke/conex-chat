@@ -5,6 +5,7 @@ exports.up = function(knex, Promise) {
       table.string('text').notNullable();
       table.integer('from_id').unsigned().notNullable().references('id').inTable('users');
       table.integer('to_id').unsigned().notNullable().references('id').inTable('users');
+      table.dateTime('sent_at');
     }),
   ]);
 };

@@ -4,6 +4,7 @@ exports.up = function(knex, Promise) {
       table.increments('id').primary();
       table.string('username').notNullable();
       table.string('hash').notNullable();
+      table.string('token');
     }),
   ]);
 };
