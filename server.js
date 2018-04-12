@@ -90,11 +90,7 @@ app.post('/api/users', (req, res) => {
 });
 
 app.post('/api/messages', (req, res) => {
-  knex('users').where('id', req.body.from_id).first().then(user => {
-    if (req.headers.authorization != user.token) {
-      res.status(403).send("Not logged in");
-      throw new Error('abort');
-    }
+  compare(req.body.from_id, req.headers.authorization).then(user => {
     return knex('messages').insert({
       from_id: req.body.from_id,
       to_id: req.body.to_id,
@@ -108,55 +104,72 @@ app.post('/api/messages', (req, res) => {
       message: message
     });
     return;
-  }).catch(error => {
-    if (error.message !== 'abort') {
-      console.log(error);
-      res.status(500).json({
-        error
-      });
-    }
-  });
+  }).catch(error => catchError(res, error));
 });
 
 app.get('/api/messages', (req, res) => {
-  knex('users').where('token', req.headers.authorization).first().then(user => {
-    if (user === undefined) {
-      res.status(403).send("Not logged in");
-      throw new Error('abort');
-    }
+  authorize(req.headers.authorization).then(user => {
     return knex('users').join('messages', 'users.id', 'messages.from_id')
-    .where('from_id', user.id).orWhere('to_id', user.id)
-    .select('username', 'text', 'sent_at');
+      .where('from_id', user.id).orWhere('to_id', user.id)
+      .select('username', 'text', 'sent_at');
   }).then(messages => {
     res.status(200).json({
       messages: messages
     });
-  }).catch(error => {
-    if (error.message !== 'abort') {
-      res.status(500).json({
-        error
-      });
-    }
-  });
+  }).catch(error => catchError(res, error));
 });
 
 app.get('/api/users', (req, res) => {
-  knex('users').where('token', req.headers.authorization).first().then(user => {
-    if (user === undefined) {
-      res.status(403).send("Not logged in");
-      throw new Error('abort');
-    }
+  authorize(req.headers.authorization).then(user => {
     return knex('users').select('id', 'username');
   }).then(users => {
     res.status(200).json({
       users: users
     });
-  }).catch(error => {
-    console.log('error');
-    if (error.message !== 'abort') {
-      res.status(500).json({
-        error
-      });
-    }
-  });
+  }).catch(error => catchError(res, error));
 });
+
+function doExist(array) {
+  for (let i = 0; i < array.length; i++) {
+    if (array[i] === undefined) return Promise.resolve(false);
+  }
+  return Promise.resolve(true);
+}
+
+function catchError(res, error) {
+  if (error.status === undefined) {
+    error.status = 500;
+    console.log(error);
+  }
+  res.status(error.status).json(error);
+}
+
+function authorize(token) {
+  return validateUser(token, [token]).then(user => {
+    return checkUser(user, user !== undefined);
+  });
+}
+
+function compare(user_id, token) {
+  return validateUser(token, [user_id, token]).then(user => {
+    return checkUser(user, user !== undefined && parseInt(user_id) === user.id);
+  });
+}
+
+function validateUser(token, validate) {
+  return doExist(validate).then(exist => {
+    if (!exist) return undefined;
+    return knex('users').where('token', token).first();
+  });
+}
+
+function checkUser(user, bool) {
+  if (bool)
+    return user;
+  else {
+    throw {
+      status: 403,
+      message: 'Not logged in.'
+    };
+  }
+}
