@@ -40,6 +40,7 @@ export default {
       if (this.isOpen(user)) classes += ' open';
       if (this.isMe(user)) classes += ' me';
       if (user.active && this.connected) classes += ' active';
+      if (user.unread) classes += ' unread';
       return classes;
     },
     selectUser: function(user) {
@@ -123,10 +124,16 @@ h1.header {
   vertical-align: bottom;
   display: inline-block;
   background-color: gray;
+  text-align: center;
+  font-weight: bold;
 }
 
 .active .marker {
   background-color: #a5c663;
+}
+
+.unread .marker {
+  border: 2px solid red;
 }
 
 .open {

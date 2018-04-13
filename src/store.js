@@ -65,9 +65,12 @@ export default new Vuex.Store({
     },
     addMessage: (state, message) => {
       state.messages.push(message);
+      if (message.username !== state.openUser.username && message.username !== state.user.username)
+        state.users.find((user) => user.username === message.username).unread = true;
     },
     setOpenUser: (state, user) => {
       state.openUser = user;
+      state.openUser.unread = false;
     },
     setConnected: (state, value) => {
       state.connected = value;
@@ -118,6 +121,7 @@ export default new Vuex.Store({
           Authorization: context.state.user.token
         }
       }).then(response => {
+        response.data.users.forEach(user => (user.unread = false))
         context.commit('setUsers', response.data.users.sort((a, b) => {
           if (a.id === context.state.user.id) return -1;
           if (b.id === context.state.user.id) return 1;
