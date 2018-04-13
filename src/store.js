@@ -175,11 +175,14 @@ function initWebSocket(context) {
   });
   context.state.socket.addEventListener('message', (event) => {
     let data = JSON.parse(event.data);
-    console.log(data);
-    if (data.action === 'sentMessage') {
-      context.commit('addMessage', data.result);
-    } else if (data.action === 'activated' || data.action === 'deactivated') {
-      context.dispatch('getUsers');
+    if (data.success) {
+      if (data.action === 'sentMessage') {
+        context.commit('addMessage', data.result);
+      } else if (data.action === 'activated' || data.action === 'deactivated') {
+        context.dispatch('getUsers');
+      }
+    } else {
+      context.dispatch('logout');
     }
   });
   context.state.socket.addEventListener('close', (event) => {
