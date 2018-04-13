@@ -70,7 +70,6 @@ export default {
   background-color: white;
   margin: 0 auto;
   padding: 1rem;
-  height: 100%;
   background-color: #003333;
 }
 
