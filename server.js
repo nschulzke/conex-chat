@@ -5,6 +5,8 @@ const handler = require('./server/handler');
 
 const WebSocket = require('ws');
 
+db.deactivateAllUsers();
+
 app.post('/api/login', (req, res) => {
   db.loginUser(api('rest', res), {
     username: req.body.username,

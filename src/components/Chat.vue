@@ -121,6 +121,10 @@ input {
   clear: both;
 }
 
+.item:not(:first-child) {
+  margin-top: 1rem;
+}
+
 .not-me {
   background-color: #aa3939;
   color: white;

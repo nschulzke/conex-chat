@@ -17,6 +17,10 @@
 <script>
 export default {
   name: 'UsersList',
+  created: function() {
+    if (this.$store.getters.socket.readyState !== WebSocket.OPEN)
+      this.$store.dispatch('activateWs');
+  },
   computed: {
     user: function() {
       return this.$store.getters.user;

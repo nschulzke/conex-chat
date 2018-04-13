@@ -135,6 +135,12 @@ module.exports = {
         username: user.username,
       });
     }).catch(error => console.log(error));
+  },
+
+  deactivateAllUsers: function() {
+    knex('users').update({
+      active: false,
+    }).catch(error => console.log(error));
   }
 }
 
