@@ -112,10 +112,6 @@ export default {
   padding: 0.5rem;
 }
 
-.item {
-  padding-right: 1rem;
-}
-
 .sendForm {
   background: #eee;
   margin-bottom: 10px;
@@ -146,6 +142,7 @@ input {
 
 .item {
   padding: 1rem;
+  max-width: 80%;
   border: 1px solid #ddd;
   clear: both;
 }
