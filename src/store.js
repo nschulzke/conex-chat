@@ -91,10 +91,6 @@ export default new Vuex.Store({
     },
     activateWs(context) {
       initWebSocket(context);
-      context.state.reconnect = setInterval(() => {
-        if (context.state.socket.readyState !== WebSocket.OPEN)
-          initWebSocket(context);
-      }, 20000);
     },
     logout(context, user) {
       context.commit('setUser', {});
@@ -175,5 +171,13 @@ function initWebSocket(context) {
     } else if (data.action === 'activated' || data.action === 'deactivated') {
       context.dispatch('getUsers');
     }
+  });
+  context.state.socket.addEventListener('close', (event) => {
+    clearInterval(context.state.reconnect)
+    context.state.reconnect = setInterval(() => {
+      if (context.state.socket.readyState === WebSocket.CLOSED) {
+        initWebSocket(context);
+      } else clearInterval(context.state.reconnect);
+    }, 5000);
   });
 }
