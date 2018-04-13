@@ -140,4 +140,10 @@ h1.header {
   background-color: #0d4d4d;
   border: 1px solid #002525
 }
+
+@media only screen and (max-height: 400px) {
+  .left {
+    display: none;
+  }
+}
 </style>

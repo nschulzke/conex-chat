@@ -21,12 +21,26 @@
 import Connecting from './Connecting';
 import moment from 'moment';
 export default {
-  components: {Connecting},
+  components: {
+    Connecting
+  },
   name: 'Chat',
   data() {
     return {
       text: '',
     }
+  },
+  created: function() {
+    var width = window.innerWidth;
+    var height = window.innerHeight;
+    var component = this;
+    setInterval(function() {
+      if ((width != window.innerWidth) || (height != window.innerHeight)) {
+        width = window.innerWidth;
+        height = window.innerHeight;
+        component.scroll();
+      }
+    }, 500);
   },
   filters: {
     since: function(datetime) {
@@ -55,9 +69,7 @@ export default {
     },
   },
   updated: function() {
-    var container = this.$el.querySelector("#messages");
-    if (container !== undefined)
-      container.scrollTop = container.scrollHeight;
+    this.scroll();
   },
   methods: {
     send: function() {
@@ -73,6 +85,11 @@ export default {
     },
     isMe: function(item) {
       return this.user.username === item.username;
+    },
+    scroll: function() {
+      var container = this.$el.querySelector("#messages");
+      if (container !== undefined)
+        container.scrollTop = container.scrollHeight;
     },
   },
 }
