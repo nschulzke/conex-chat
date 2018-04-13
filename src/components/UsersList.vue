@@ -99,6 +99,7 @@ h1.name {
   border-radius: 0.25rem;
   white-space: nowrap;
   overflow: hidden;
+  cursor: pointer;
 }
 
 .marker {

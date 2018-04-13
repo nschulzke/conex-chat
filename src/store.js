@@ -157,7 +157,10 @@ export default new Vuex.Store({
 });
 
 function initWebSocket(context) {
-  context.state.socket = new WebSocket('ws://localhost:3000/api/messages');
+  let loc = window.location;
+  let ws_uri = loc.protocol === 'https:' ? 'wss:' : 'ws:';
+  ws_uri += '//' + loc.host + '/api/messages';
+  context.state.socket = new WebSocket(ws_uri);
   context.state.socket.addEventListener('open', (event) => {
     context.state.socket.send(JSON.stringify({
       action: 'activate',
