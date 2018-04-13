@@ -1,12 +1,11 @@
 <template>
 <div class="users">
-  <div class="me">
-    <h1 class="name">{{user.username}}</h1>
-  </div>
+  <h1 class="header">Conex chat</h1>
   <div class="users-list">
-    <div v-for="user in users" class="user" v-on:click="selectUser(user)" v-bind:class="isOpen(user)">
-      <span v-bind:class="activeClass(user)"></span>
+    <div v-for="user in users" class="user" v-on:click="selectUser(user)" v-bind:class="classes(user)">
+      <span class="marker"></span>
       <span class="name">{{user.username}}</span>
+      <span class="me-marker" v-if="isMe(user)">(Me)</span>
     </div>
   </div>
   <a class="logout" href="#" v-on:click.prevent="logout">Logout</a>
@@ -26,21 +25,28 @@ export default {
       return this.$store.getters.user;
     },
     users: function() {
-      return this.$store.getters.users.filter((user) => user.id !== this.user.id);
+      return this.$store.getters.users;
     },
     openUser: function() {
       return this.$store.getters.openUser;
     },
   },
   methods: {
-    activeClass: function(user) {
-      return 'marker ' + (user.active ? 'active' : 'inactive');
+    classes: function(user) {
+      let classes = ''
+      if (this.isOpen(user)) classes += ' open';
+      if (this.isMe(user)) classes += ' me';
+      if (user.active) classes += ' active';
+      return classes;
     },
     selectUser: function(user) {
       this.$store.dispatch('openUser', user);
     },
     isOpen: function(user) {
       return this.openUser === user ? 'open' : '';
+    },
+    isMe: function(user) {
+      return user.id === this.user.id;
     },
     logout: function() {
       this.$store.dispatch('logout');
@@ -50,7 +56,7 @@ export default {
 </script>
 
 <style scoped>
-h1.name {
+h1.header {
   padding-bottom: 0.5rem;
   margin-bottom: 0;
   margin-top: 0.5rem;
@@ -59,6 +65,10 @@ h1.name {
   text-align: center;
   display: flex;
   flex-direction: column;
+}
+
+.me-marker {
+  color: #999;
 }
 
 .users {
@@ -109,14 +119,11 @@ h1.name {
   border-radius: 50%;
   vertical-align: bottom;
   display: inline-block;
-}
-
-.active {
-  background-color: #a5c663;
-}
-
-.inactive {
   background-color: gray;
+}
+
+.active .marker {
+  background-color: #a5c663;
 }
 
 .open {

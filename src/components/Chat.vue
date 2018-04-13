@@ -42,7 +42,10 @@ export default {
       return this.$store.getters.messages;
     },
     filtered: function() {
-      return this.messages.filter((message) => message.from_id === this.openUser.id || message.to_id === this.openUser.id);
+      return this.messages.filter((message) =>
+        message.from_id === this.openUser.id && message.to_id === this.user.id
+        || message.to_id === this.openUser.id && message.from_id === this.user.id
+      );
     }
   },
   updated: function() {

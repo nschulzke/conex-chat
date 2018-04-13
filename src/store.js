@@ -75,8 +75,6 @@ export default new Vuex.Store({
         context.commit('setLoggedIn', true);
         context.commit('setLoginError', '');
         context.commit('setRegisterError', '');
-        context.dispatch('getMessages');
-        context.dispatch('getUsers');
         context.dispatch('activateWs');
       }).catch(error => {
         context.commit('setLoggedIn', false);
@@ -96,7 +94,7 @@ export default new Vuex.Store({
       context.state.reconnect = setInterval(() => {
         if (context.state.socket.readyState !== WebSocket.OPEN)
           initWebSocket(context);
-      }, 5000);
+      }, 20000);
     },
     logout(context, user) {
       context.commit('setUser', {});
@@ -167,6 +165,7 @@ function initWebSocket(context) {
       action: 'activate',
       token: context.state.user.token
     }));
+    context.dispatch('getMessages');
   });
   context.state.socket.addEventListener('message', (event) => {
     let data = JSON.parse(event.data);

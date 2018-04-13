@@ -116,13 +116,17 @@ module.exports = {
 
   activateUser: function(api, req) {
     authorize(req.token).then(user => {
-      api.onSuccess('user', {
-        id: user.id,
-        username: user.username,
-      });
       knex('users').where('id', user.id).update({
         active: true,
-      }).catch(error => console.log(error));
+      }).then((cols) => {
+        if (cols === 1) {
+          api.onSuccess('user', {
+            id: user.id,
+            username: user.username,
+            active: true,
+          });
+        }
+      }).catch(error => api.onError(error));
     }).catch(error => api.onError(error));
   },
 
