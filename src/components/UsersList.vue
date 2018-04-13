@@ -30,13 +30,16 @@ export default {
     openUser: function() {
       return this.$store.getters.openUser;
     },
+    connected: function() {
+      return this.$store.getters.connected;
+    },
   },
   methods: {
     classes: function(user) {
       let classes = ''
       if (this.isOpen(user)) classes += ' open';
       if (this.isMe(user)) classes += ' me';
-      if (user.active) classes += ' active';
+      if (user.active && this.connected) classes += ' active';
       return classes;
     },
     selectUser: function(user) {

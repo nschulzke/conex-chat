@@ -19,6 +19,7 @@ export default new Vuex.Store({
     messages: [],
     socket: {},
     openUser: {},
+    connected: true,
   },
   getters: {
     user: state => state.user,
@@ -30,6 +31,7 @@ export default new Vuex.Store({
     messages: state => state.messages,
     socket: state => state.socket,
     openUser: state => state.openUser,
+    connected: state => state.connected,
   },
   mutations: {
     setUser: (state, user) => {
@@ -66,6 +68,9 @@ export default new Vuex.Store({
     },
     setOpenUser: (state, user) => {
       state.openUser = user;
+    },
+    setConnected: (state, value) => {
+      state.connected = value;
     }
   },
   actions: {
@@ -157,6 +162,7 @@ function initWebSocket(context) {
   ws_uri += '//' + loc.hostname + ':' + serverConfig.PORT + '/api/messages';
   context.state.socket = new WebSocket(ws_uri);
   context.state.socket.addEventListener('open', (event) => {
+    context.commit('setConnected', true);
     context.state.socket.send(JSON.stringify({
       action: 'activate',
       token: context.state.user.token
@@ -174,6 +180,7 @@ function initWebSocket(context) {
   });
   context.state.socket.addEventListener('close', (event) => {
     clearInterval(context.state.reconnect)
+    context.commit('setConnected', false);
     context.state.reconnect = setInterval(() => {
       if (context.state.socket.readyState === WebSocket.CLOSED) {
         initWebSocket(context);

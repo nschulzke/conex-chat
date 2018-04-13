@@ -1,5 +1,6 @@
 <template>
 <div class="chat">
+  <connecting/>
   <div class="messages" id="messages">
     <div v-for="item in filtered" class="item" v-bind:class="isMe(item) ? 'me' : 'not-me'">
       <p class="idline">
@@ -11,14 +12,16 @@
   </div>
   <form v-on:submit.prevent="send" class="sendForm">
     <input type="text" v-model="text" />
-    <button class="primary" type="submit">Send</button>
+    <button class="primary" type="submit" v-bind:disabled="!connected">Send</button>
   </form>
 </div>
 </template>
 
 <script>
+import Connecting from './Connecting';
 import moment from 'moment';
 export default {
+  components: {Connecting},
   name: 'Chat',
   data() {
     return {
@@ -43,10 +46,13 @@ export default {
     },
     filtered: function() {
       return this.messages.filter((message) =>
-        message.from_id === this.openUser.id && message.to_id === this.user.id
-        || message.to_id === this.openUser.id && message.from_id === this.user.id
+        message.from_id === this.openUser.id && message.to_id === this.user.id ||
+        message.to_id === this.openUser.id && message.from_id === this.user.id
       );
-    }
+    },
+    connected: function() {
+      return this.$store.getters.connected;
+    },
   },
   updated: function() {
     var container = this.$el.querySelector("#messages");
@@ -55,13 +61,15 @@ export default {
   },
   methods: {
     send: function() {
-      this.$store.dispatch('sendMessage', {
-        from_id: this.user.id,
-        to_id: this.openUser.id,
-        text: this.text,
-      }).then(tweet => {
-        this.text = "";
-      });
+      if (this.connected) {
+        this.$store.dispatch('sendMessage', {
+          from_id: this.user.id,
+          to_id: this.openUser.id,
+          text: this.text,
+        }).then(tweet => {
+          this.text = "";
+        });
+      }
     },
     isMe: function(item) {
       return this.user.username === item.username;
@@ -78,6 +86,7 @@ export default {
   flex-direction: column;
   padding: 1rem;
   background-color: white;
+  position: relative;
 }
 
 .messages {
@@ -164,5 +173,4 @@ input {
 .me .time {
   float: right;
 }
-
 </style>
