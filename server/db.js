@@ -20,15 +20,19 @@ module.exports = {
           message: "Invalid credentials"
         };
       }
-      return [bcrypt.compare(req.password, user.hash), user];
-    }).then(results => {
-      result = results[0];
-      user = results[1];
+      return Promise.all([bcrypt.compare(req.password, user.hash), user]);
+    }).then(([result, user]) => {
       if (!result) {
         throw {
           status: 403,
           message: "Invalid credentials"
         };
+      }
+      if (user.active) {
+        throw {
+          status: 403,
+          message: "Already logged in elsewhere!"
+        }
       }
       let token = crypto.randomBytes(48).toString('hex')
       knex('users').where('id', user.id).update({
@@ -44,6 +48,18 @@ module.exports = {
 
   registerUser: function(api, req) {
     assertExist([req.username, req.password]).then(() => {
+      if (req.username.length < 4 || /[\s\t\n]/g.test(req.username)) {
+        throw {
+          status: 400,
+          message: "Invalid username: must be at least four characters and cannot contain whitespace"
+        }
+      }
+      if (req.password.length < 4) {
+        throw {
+          status: 400,
+          message: "Invalid password: must be at least four characters"
+        }
+      }
       return knex('users').where('username', req.username).first();
     }).then(user => {
       if (user !== undefined) {
@@ -58,6 +74,7 @@ module.exports = {
         username: req.username,
         hash: hash,
         token: crypto.randomBytes(48).toString('hex'),
+        active: false,
       });
     }).then(ids => {
       return knex('users').where('id', ids[0]).first().select('id', 'username', 'token');
@@ -72,7 +89,8 @@ module.exports = {
       req.sent_at = new Date();
       return knex('messages').insert(req);
     }).then(ids => {
-      return knex('messages').where('id', ids[0]).first();
+      return knex('users').join('messages', 'users.id', 'messages.from_id')
+        .where('messages.id', ids[0]).select('username', 'text', 'sent_at', 'from_id', 'to_id').first();
     }).then(message => {
       api.onSuccess('message', message);
     }).catch(error => api.onError(error));
@@ -82,7 +100,7 @@ module.exports = {
     authorize(req.token).then(user => {
       return knex('users').join('messages', 'users.id', 'messages.from_id')
         .where('from_id', user.id).orWhere('to_id', user.id)
-        .select('username', 'text', 'sent_at');
+        .select('username', 'text', 'sent_at', 'from_id', 'to_id');
     }).then(messages => {
       api.onSuccess('messages', messages);
     }).catch(error => api.onError(error));
@@ -133,7 +151,7 @@ function assertExist(array) {
 
 function doExist(array) {
   for (let i = 0; i < array.length; i++) {
-    if (array[i] === undefined) return Promise.resolve(false);
+    if (array[i] === undefined || array[i] === '') return Promise.resolve(false);
   }
   return Promise.resolve(true);
 }

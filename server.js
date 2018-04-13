@@ -76,8 +76,8 @@ app.ws('/api/messages', (ws, req) => {
   });
 
   function closed() {
-    clearInterval(pingTimeout);
-    clearTimeout(ping);
+    clearInterval(ping);
+    clearTimeout(pingTimeout);
     if (user)
       db.deactivateUser(api('ws', (data) => broadcast(data), 'deactivated'), user);
     if (ws._socket)
@@ -90,12 +90,12 @@ app.ws('/api/messages', (ws, req) => {
       ws.ping();
       pingTimeout = setTimeout(() => {
         closed();
-      }, 5000);
+      }, 2500);
     } else closed();
   }, 5000);
 
   ws.on('pong', () => {
-    clearTimeout(ping);
+    clearTimeout(pingTimeout);
   });
 
   ws.on('close', () => {

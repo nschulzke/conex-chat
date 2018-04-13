@@ -1,10 +1,9 @@
 <template>
-  <div>
-    <div class="error" v-html="error"></div>
-    <div v-if="loggedIn">
-      <chat/>
+  <div class="container">
+    <div v-if="loggedIn" class="main">
+      <window/>
     </div>
-    <div v-else>
+    <div v-else class="main">
       <welcome-page/>
     </div>
   </div>
@@ -12,23 +11,25 @@
 
 <script>
  import WelcomePage from './WelcomePage';
- import Chat from './Chat';
+ import Window from './Window';
  export default {
    name: 'HomePage',
-   components: {WelcomePage,Chat},
+   components: {WelcomePage,Window},
    computed: {
      loggedIn: function() {
        return this.$store.getters.loggedIn;
-     },
-     error: function() {
-       return this.$store.getters.error;
      }
    },
  }
 </script>
 
 <style scoped>
-.error {
-  color: red;
+.container {
+  height: 100%;
+  background-color: #002222;
+}
+
+.main {
+  height: 100%;
 }
 </style>

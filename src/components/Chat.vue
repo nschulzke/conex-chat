@@ -1,19 +1,18 @@
 <template>
-<div class="messages">
-  <div v-for="item in messages" class="item">
-    <p class="idline">
-      <span class="time">{{item.sent_at | since}}</span>
-    </p>
-    <p class="tweet">{{item.text}}</p>
+<div class="chat">
+  <div class="messages" id="messages">
+    <div v-for="item in filtered" class="item" v-bind:class="isMe(item) ? 'me' : 'not-me'">
+      <p class="idline">
+        <span class="user">{{item.username}}</span>
+        <span class="time">{{item.sent_at | since}}</span>
+      </p>
+      <p class="text">{{item.text}}</p>
+    </div>
   </div>
-  <div>
-    <form v-on:submit.prevent="send" class="sendForm">
-      <textarea v-model="text" placeholder="" /><br/>
-      <div class="buttonWrap">
-        <button class="primary" type="submit">Send</button>
-      </div>
-    </form>
-  </div>
+  <form v-on:submit.prevent="send" class="sendForm">
+    <input type="text" v-model="text" />
+    <button class="primary" type="submit">Send</button>
+  </form>
 </div>
 </template>
 
@@ -26,9 +25,6 @@ export default {
       text: '',
     }
   },
-  created: function() {
-    this.$store.dispatch('getMessages');
-  },
   filters: {
     since: function(datetime) {
       moment.locale('en');
@@ -36,40 +32,64 @@ export default {
     },
   },
   computed: {
+    user: function() {
+      return this.$store.getters.user;
+    },
+    openUser: function() {
+      return this.$store.getters.openUser;
+    },
     messages: function() {
       return this.$store.getters.messages;
+    },
+    filtered: function() {
+      return this.messages.filter((message) => message.from_id === this.openUser.id || message.to_id === this.openUser.id);
     }
+  },
+  updated: function() {
+    var container = this.$el.querySelector("#messages");
+    if (container !== undefined)
+      container.scrollTop = container.scrollHeight;
   },
   methods: {
     send: function() {
       this.$store.dispatch('sendMessage', {
-        from_id: this.$store.getters.user.id,
-        to_id: this.$store.getters.user.id,
+        from_id: this.user.id,
+        to_id: this.openUser.id,
         text: this.text,
       }).then(tweet => {
         this.text = "";
       });
     },
-    isMe: function(id) {
-      return this.$store.getters.user.id === id;
-    }
-  }
+    isMe: function(item) {
+      return this.user.username === item.username;
+    },
+  },
 }
 </script>
 
 <style scoped>
-.messages {
-  width: 600px;
-}
-
-.tweetForm {
-  background: #eee;
-  padding: 10px;
-  margin-bottom: 10px;
-}
-
-.buttonWrap {
+.chat {
   width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+  background-color: white;
+}
+
+.messages {
+  flex: 1;
+  overflow-y: scroll;
+  padding: 0.5rem;
+}
+
+.item {
+  padding-right: 1rem;
+}
+
+.sendForm {
+  background: #eee;
+  margin-bottom: 10px;
   display: flex;
 }
 
@@ -79,40 +99,63 @@ button {
   font-size: 0.9em;
 }
 
-textarea {
-  width: 100%;
-  height: 5em;
-  padding: 2px;
-  margin-bottom: 5px;
-  resize: none;
-  box-sizing: border-box;
+p {
+  margin: 0;
 }
 
-.item {
-  border-bottom: 1px solid #ddd;
-  padding: 10px;
-}
-
-.tweet {
-  margin-top: 0px;
+input {
+  flex: 1;
 }
 
 .idline {
-  margin-bottom: 0px;
+  height: 1.5rem;
 }
 
 .user {
   font-weight: bold;
-  margin-right: 10px;
 }
 
-.handle {
-  margin-right: 10px;
-  color: #666;
+.item {
+  padding: 1rem;
+  border: 1px solid #ddd;
+  clear: both;
 }
 
-.time {
+.not-me {
+  background-color: #aa3939;
+  color: white;
+  float: left;
+  border-radius: 1rem 1rem 1rem 0;
+}
+
+.not-me .user {
   float: right;
-  color: #666;
 }
+
+.not-me .time {
+  color: #ffbbbb;
+  margin-right: 10px;
+  float: left;
+}
+
+.me {
+  background-color: #bbbbbb;
+  float: right;
+  border-radius: 1rem 1rem 0 1rem;
+}
+
+.me .time {
+  color: #777777;
+  text-align: right;
+}
+
+.me .user {
+  margin-right: 10px;
+  float: left;
+}
+
+.me .time {
+  float: right;
+}
+
 </style>

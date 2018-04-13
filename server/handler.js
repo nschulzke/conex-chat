@@ -58,7 +58,6 @@ function getWs(send, sockets, ws) {
         );
       },
       sendMessage: function(msg) {
-        console.log(msg);
         db.sendMessage(api('ws', send, 'sentMessage'), {
           from_id: this.data.user.id,
           to_id: msg.to_id,
