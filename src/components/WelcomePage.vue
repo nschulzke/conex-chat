@@ -2,24 +2,31 @@
 <div class="welcome">
   <h1 class="head">Conex</h1>
   <h2 class="head">Make new connections!</h2>
-  <div class="cols">
-    <div class="col">
-      <div class="error" v-html="loginError"></div>
-      <h2>Log in</h2>
-      <form v-on:submit.prevent="login">
-        <input v-model="lUsername" placeholder="User Name">
-        <input type="password" v-model="lPassword" placeholder="Password">
-        <button type="submit">Log in</button>
-      </form>
-    </div>
-    <div class="col">
-      <div class="error" v-html="registerError"></div>
-      <h2>Register</h2>
-      <form v-on:submit.prevent="register">
-        <input v-model="rUsername" placeholder="User Name">
-        <input type="password" v-model="rPassword" placeholder="Password">
-        <button type="submit">Register</button>
-      </form>
+  <div class="main">
+    <p>
+      Conex is a chat app, a simple one right now. To get started, log in or create an account below!
+    </p>
+    <div class="cols">
+      <div class="col">
+        <h2>Log in</h2>
+        <form v-on:submit.prevent="login">
+          <input v-model="loginUsername" placeholder="User Name">
+          <input type="password" v-model="loginPassword" placeholder="Password">
+          <button type="submit">Log in</button>
+        </form>
+        <div class="error" v-html="loginError"></div>
+      </div>
+      <div class="col">
+        <h2>Register</h2>
+        <form v-on:submit.prevent="register">
+          <input v-model="registerUsername" placeholder="User Name">
+          <input type="password" v-model="registerPassword" placeholder="Password">
+          <input type="password" v-model="confirmPassword" placeholder="Confirm password">
+          <button type="submit">Register</button>
+        </form>
+        <div class="error" v-html="registerError"></div>
+      </div>
+      <a class="repo" href="https://github.com/nschulzke/conex-chat" target="_blank">Repository</a>
     </div>
   </div>
 </div>
@@ -30,10 +37,11 @@ export default {
   name: 'WelcomePage',
   data() {
     return {
-      rUsername: '',
-      rPassword: '',
-      lUsername: '',
-      lPassword: '',
+      registerUsername: '',
+      registerPassword: '',
+      confirmPassword: '',
+      loginUsername: '',
+      loginPassword: '',
     }
   },
   computed: {
@@ -50,15 +58,19 @@ export default {
   methods: {
     login: function() {
       this.$store.dispatch('login', {
-        username: this.lUsername,
-        password: this.lPassword,
+        username: this.loginUsername,
+        password: this.loginPassword,
       });
     },
     register: function() {
-      this.$store.dispatch('register', {
-        username: this.rUsername,
-        password: this.rPassword,
-      });
+      if (this.registerPassword !== this.confirmPassword)
+        this.$store.commit('setRegisterError', 'Passswords must match');
+      else {
+        this.$store.dispatch('register', {
+          username: this.registerUsername,
+          password: this.registerPassword,
+        });
+      }
     }
   }
 }
@@ -82,6 +94,7 @@ h1 {
   margin-bottom: 0;
   margin-top: 0;
 }
+
 h2.head {
   margin-top: 0;
 }
@@ -107,12 +120,17 @@ h2 {
   width: 370px;
 }
 
-.cols {
+.main {
   margin-top: 1rem;
   border: 1px solid black;
   background-color: white;
   border-radius: 1rem;
   min-height: 20rem;
+  position: relative;
+}
+
+.main p {
+  text-align: center;
 }
 
 .col {
@@ -136,11 +154,13 @@ button {
   margin-top: 0.5rem;
 }
 
-form {
-  margin-bottom: 2rem;
-}
-
 input {
   width: 100%;
+}
+
+.repo {
+  position: absolute;
+  bottom: 1rem;
+  right: 1rem;
 }
 </style>
