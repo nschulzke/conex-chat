@@ -46,6 +46,8 @@ app.get('/api/users', (req, res) => {
 sockets = {};
 
 function send(ws, data) {
+  if (Array.isArray(ws))
+    ws.forEach(socket => send(socket, data));
   if (ws !== undefined && ws.readyState === WebSocket.OPEN)
     ws.send(JSON.stringify(data));
 }
@@ -58,16 +60,22 @@ function broadcast(data) {
 app.ws('/api/messages', (ws, req) => {
   let user;
   let _handler = handler('ws', (data) => {
-    send(ws, data);
+    if (user)
+      send(sockets[user.id], data);
+    else
+      send(ws, data);
     if (data.result !== undefined) {
       if (data.result.to_id !== undefined && data.result.from_id !== data.result.to_id) {
         send(sockets[data.result.to_id], data);
       } else if (data.action === 'activated' && data.success) {
         user = data.result;
+        if (sockets[user.id] === undefined)
+          sockets[user.id] = [];
+        sockets[user.id].push(ws);
         broadcast(data);
       }
     }
-  }, sockets, ws);
+  }, ws);
 
   ws.on('message', (msg) => {
     try {
@@ -80,8 +88,12 @@ app.ws('/api/messages', (ws, req) => {
   function closed() {
     clearInterval(ping);
     clearTimeout(pingTimeout);
-    if (user)
-      db.deactivateUser(api('ws', (data) => broadcast(data), 'deactivated'), user);
+    if (user) {
+      var index = sockets[user.id].indexOf(ws);
+      if (index !== -1) sockets[user.id].splice(index, 1);
+      if (sockets[user.id].length === 0)
+        db.deactivateUser(api('ws', (data) => broadcast(data), 'deactivated'), user);
+    }
     if (ws._socket)
       ws._socket.destroy();
   }

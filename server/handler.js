@@ -1,11 +1,11 @@
 const db = require('./db');
 const api = require('./api');
 
-module.exports = function(api, target, arg1, arg2) {
-  if (api === 'ws') return getWs(target, arg1, arg2);
+module.exports = function(api, target, arg) {
+  if (api === 'ws') return getWs(target, arg);
 }
 
-function getWs(send, sockets, ws) {
+function getWs(send, ws) {
   let authorized = false;
   return {
     handle: function(msg) {
@@ -49,7 +49,6 @@ function getWs(send, sockets, ws) {
             this.data.user = user;
             this.data.user.token = msg.token;
             authorized = true;
-            sockets[user.id] = ws;
           }).error(() => {
             authorized = false;
           }), {

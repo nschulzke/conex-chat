@@ -9,6 +9,16 @@ const saltRounds = 10;
 
 const crypto = require('crypto');
 
+// jwt setup
+const jwt = require('jsonwebtoken');
+
+let jwtSecret = process.env.JWT_SECRET;
+if (jwtSecret === undefined) {
+  console.log("You need to define a jwtSecret environment variable to continue.");
+  knex.destroy();
+  process.exit();
+}
+
 module.exports = {
   loginUser: function(api, req) {
     assertExist([req.username, req.password]).then(() => {
@@ -28,16 +38,9 @@ module.exports = {
           message: "Invalid credentials"
         };
       }
-      if (user.active) {
-        throw {
-          status: 403,
-          message: "Already logged in elsewhere!"
-        }
-      }
-      let token = crypto.randomBytes(48).toString('hex')
-      knex('users').where('id', user.id).update({
-        token: token,
-      }).catch(error => console.log(error));
+      let token = jwt.sign({ id: user.id }, jwtSecret, {
+        expiresIn: 86400 // expires in 24 hours
+      });
       api.onSuccess('user', {
         id: user.id,
         username: user.username,
@@ -73,12 +76,14 @@ module.exports = {
       return knex('users').insert({
         username: req.username,
         hash: hash,
-        token: crypto.randomBytes(48).toString('hex'),
         active: false,
       });
     }).then(ids => {
-      return knex('users').where('id', ids[0]).first().select('id', 'username', 'token');
+      return knex('users').where('id', ids[0]).first().select('id', 'username');
     }).then(user => {
+      user.token = jwt.sign({ id: user.id }, jwtSecret, {
+        expiresIn: 86400 // expires in 24 hours
+      });
       api.onSuccess('user', user);
     }).catch(error => api.onError(error));
   },
@@ -145,7 +150,7 @@ module.exports = {
     knex('users').update({
       active: false,
     }).catch(error => console.log(error));
-  }
+  },
 }
 
 function assertExist(array) {
@@ -181,7 +186,10 @@ function compare(user_id, token) {
 function validateUser(token, validate) {
   return doExist(validate).then(exist => {
     if (!exist) return undefined;
-    return knex('users').where('token', token).first();
+    let decoded = jwt.verify(token, jwtSecret);
+    if (decoded.id)
+      return knex('users').where('id', decoded.id).first();
+    else return undefined;
   });
 }
 
