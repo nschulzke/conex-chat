@@ -1,0 +1,30 @@
+{
+  "name": "chat-server",
+  "version": "1.0.0",
+  "description": "A server for a chat app",
+  "main": "server.js",
+  "author": "Nathan Schulzke <nschulzke@gmail.com>",
+  "private": true,
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nschulzke/conex-chat.git"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/nschulzke/conex-chat/issues"
+  },
+  "homepage": "https://github.com/nschulzke/conex-chat#readme",
+  "dependencies": {
+    "bcrypt": "^2.0.0",
+    "body-parser": "^1.18.2",
+    "express": "^4.16.3",
+    "express-ws": "^3.0.0",
+    "jsonwebtoken": "^8.2.1",
+    "knex": "^0.14.5",
+    "sqlite3": "^4.0.0"
+  }
+}

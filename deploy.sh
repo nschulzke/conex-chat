@@ -1,6 +1,8 @@
 #!/bin/bash
 
 source .env
-
-rsync -ahe ssh --progress dist/ $DEPLOY_SERVER:$DEPLOY_LOCATION/public
-rsync -ahe ssh --progress {migrations,package*,server*,knexfile.js} $DEPLOY_SERVER:$DEPLOY_LOCATION
+cd client
+npm run build
+cd ..
+rsync -ahe ssh --progress ./client/dist/ $DEPLOY_SERVER:$DEPLOY_LOCATION/public
+rsync -ahe ssh --progress ./server/* $DEPLOY_SERVER:$DEPLOY_LOCATION

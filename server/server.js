@@ -1,7 +1,7 @@
-const app = require('./server/app');
-const db = require('./server/db');
-const api = require('./server/api');
-const handler = require('./server/handler');
+const app = require('./src/app');
+const db = require('./src/db');
+const api = require('./src/api');
+const handler = require('./src/handler');
 
 const WebSocket = require('ws');
 
