@@ -11,19 +11,22 @@ module.exports = {
   },
 
   staging: {
-    client: 'sqlite3',
+    client: 'mariasql',
     connection: {
-      filename: './staging.sqlite3'
-    },
-    useNullAsDefault: true
+      unixSocket: '/var/run/mysqld/mysqld.sock',
+      user: 'nathan',
+      db: 'chat',
+      charset: 'utf8'
+    }
   },
-
+  
   production: {
-    client: 'sqlite3',
+    client: 'mariasql',
     connection: {
-      filename: './production.sqlite3'
-    },
-    useNullAsDefault: true
+      unixSocket: '/var/run/mysqld/mysqld.sock',
+      user: 'nathan',
+      db: 'chat',
+      charset: 'utf8'
+    }
   }
-
 };
