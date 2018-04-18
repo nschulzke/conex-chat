@@ -1,13 +1,14 @@
 // Update with your config settings.
 
 module.exports = {
-
   development: {
-    client: 'sqlite3',
+    client: 'mariasql',
     connection: {
-      filename: './dev.sqlite3'
-    },
-    useNullAsDefault: true
+      unixSocket: '/var/run/mysqld/mysqld.sock',
+      user: 'nathan',
+      db: 'chat',
+      charset: 'utf8'
+    }
   },
 
   staging: {
@@ -19,7 +20,7 @@ module.exports = {
       charset: 'utf8'
     }
   },
-  
+
   production: {
     client: 'mariasql',
     connection: {

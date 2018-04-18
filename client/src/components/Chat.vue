@@ -12,7 +12,7 @@
   </div>
   <form v-on:submit.prevent="send" class="sendForm">
     <input type="text" v-model="text" />
-    <button class="primary" type="submit" v-bind:disabled="!connected">Send</button>
+    <button class="primary" type="submit" v-bind:disabled="!connected || !openUser.id">Send</button>
   </form>
 </div>
 </template>
@@ -73,7 +73,7 @@ export default {
   },
   methods: {
     send: function() {
-      if (this.connected) {
+      if (this.connected && this.openUser.id) {
         this.$store.dispatch('sendMessage', {
           from_id: this.user.id,
           to_id: this.openUser.id,

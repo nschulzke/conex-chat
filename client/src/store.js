@@ -122,7 +122,10 @@ export default new Vuex.Store({
           Authorization: context.state.user.token
         }
       }).then(response => {
-        response.data.users.forEach(user => (user.unread = false))
+        response.data.users.forEach(user => {
+          user.unread = false;
+          user.active = user.active == "0" ? false : true;
+        });
         context.commit('setUsers', response.data.users.sort((a, b) => {
           if (a.id === context.state.user.id) return -1;
           if (b.id === context.state.user.id) return 1;

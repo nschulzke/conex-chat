@@ -36,6 +36,7 @@ export default {
   },
   methods: {
     classes: function(user) {
+      console.log(user);
       let classes = ''
       if (this.isOpen(user)) classes += ' open';
       if (this.isMe(user)) classes += ' me';
