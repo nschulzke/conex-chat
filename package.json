@@ -13,5 +13,8 @@
   "engines": {
     "node": ">= 6.0.0",
     "npm": ">= 3.0.0"
+  },
+  "dependencies": {
+    "mariasql": "^0.2.6"
   }
 }
