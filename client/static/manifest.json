@@ -1,0 +1,30 @@
+{
+  "short_name": "Contex",
+  "name": "Contex Chat",
+  "icons": [
+    {
+      "src": "rsc/images/launcher-icon-1x.png",
+      "type": "image/png",
+      "sizes": "48x48"
+    },
+    {
+      "src": "rsc/images/launcher-icon-2x.png",
+      "type": "image/png",
+      "sizes": "96x96"
+    },
+    {
+      "src": "rsc/images/launcher-icon-3x.png",
+      "type": "image/png",
+      "sizes": "144x144"
+    },
+    {
+      "src": "rsc/images/launcher-icon-4x.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    }
+  ],
+  "start_url": "/?launcher=true",
+  "background_color": "#1d3333",
+  "display": "standalone",
+  "theme_color": "#1d3333"
+}
