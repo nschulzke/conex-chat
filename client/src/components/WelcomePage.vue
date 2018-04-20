@@ -1,10 +1,10 @@
 <template>
 <div class="welcome">
-  <h1 class="head">Conex</h1>
+  <h1 class="head">Contex</h1>
   <h2 class="head">Make new connections!</h2>
   <div class="main">
     <p>
-      Conex is a chat app, a simple one right now. To get started, log in or create an account below!
+      Contex is a chat app, a simple one right now. To get started, log in or create an account below!
     </p>
     <div class="cols">
       <div class="col">
@@ -26,7 +26,6 @@
         </form>
         <div class="error" v-html="registerError"></div>
       </div>
-      <a class="repo" href="https://github.com/nschulzke/conex-chat" target="_blank">Repository</a>
     </div>
   </div>
 </div>
@@ -156,11 +155,5 @@ button {
 
 input {
   width: 100%;
-}
-
-.repo {
-  position: absolute;
-  bottom: 1rem;
-  right: 1rem;
 }
 </style>

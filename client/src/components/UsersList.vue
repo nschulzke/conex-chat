@@ -1,6 +1,6 @@
 <template>
 <div class="users">
-  <h1 class="header">Conex chat</h1>
+  <h1 class="header">Contex</h1>
   <div class="users-list">
     <div v-for="user in users" class="user" v-on:click="selectUser(user)" v-bind:class="classes(user)">
       <span class="marker"></span>
@@ -9,7 +9,6 @@
     </div>
   </div>
   <a class="logout" href="#" v-on:click.prevent="logout">Logout</a>
-  <a class="repo" href="https://github.com/nschulzke/conex-chat" target="_blank">Repository</a>
 </div>
 </template>
 
@@ -98,13 +97,6 @@ h1.header {
   position: absolute;
   bottom: 1rem;
   left: 1rem;
-  color: white;
-}
-
-.repo {
-  position: absolute;
-  bottom: 1rem;
-  right: 1rem;
   color: white;
 }
 

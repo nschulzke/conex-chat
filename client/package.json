@@ -11,13 +11,13 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/nschulzke/conex-chat.git"
+    "url": "git+https://github.com/nschulzke/contex.git"
   },
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/nschulzke/conex-chat/issues"
+    "url": "https://github.com/nschulzke/contex/issues"
   },
-  "homepage": "https://github.com/nschulzke/conex-chat#readme",
+  "homepage": "https://github.com/nschulzke/contex#readme",
   "dependencies": {
     "axios": "^0.18.0",
     "moment": "^2.22.0",
