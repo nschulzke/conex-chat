@@ -1,4 +1,4 @@
-const db = require('./db');
+const model = require('./model');
 const api = require('./api');
 
 module.exports = function(api, target, arg) {
@@ -44,7 +44,7 @@ function getWs(send, ws) {
         user: {},
       },
       activate: function(msg) {
-        db.activateUser(
+        model.activateUser(
           api('ws', send, 'activated').success((user) => {
             this.data.user = user;
             this.data.user.token = msg.token;
@@ -57,7 +57,7 @@ function getWs(send, ws) {
         );
       },
       sendMessage: function(msg) {
-        db.sendMessage(api('ws', send, 'sentMessage'), {
+        model.sendMessage(api('ws', send, 'sentMessage'), {
           from_id: this.data.user.id,
           to_id: msg.to_id,
           text: msg.text,

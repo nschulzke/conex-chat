@@ -1,7 +1,5 @@
-// knex setup
-const env = process.env.NODE_ENV || 'development';
-const config = require('../knexfile')[env];
-const knex = require('knex')(config);
+const users = require('./db/users');
+const messages = require('./db/messages');
 
 // bcrypt setup
 const bcrypt = require('bcrypt');
@@ -15,14 +13,13 @@ const jwt = require('jsonwebtoken');
 let jwtSecret = process.env.JWT_SECRET;
 if (jwtSecret === undefined) {
   console.log("You need to define a jwtSecret environment variable to continue.");
-  knex.destroy();
   process.exit();
 }
 
 module.exports = {
   loginUser: function(api, req) {
     assertExist([req.username, req.password]).then(() => {
-      return knex('users').where('username', req.username).first();
+      return users.getUser('username', req.username);
     }).then(user => {
       if (user === undefined) {
         throw {
@@ -63,7 +60,7 @@ module.exports = {
           message: "Invalid password: must be at least four characters"
         }
       }
-      return knex('users').where('username', req.username).first();
+      return users.getUser('username', req.username);
     }).then(user => {
       if (user !== undefined) {
         throw {
@@ -73,13 +70,13 @@ module.exports = {
       }
       return bcrypt.hash(req.password, saltRounds);
     }).then(hash => {
-      return knex('users').insert({
+      return users.add({
         username: req.username,
         hash: hash,
         active: false,
       });
     }).then(ids => {
-      return knex('users').where('id', ids[0]).first().select('id', 'username');
+      return users.getUser('id', ids[0], ['id', 'username']);
     }).then(user => {
       user.token = jwt.sign({ id: user.id }, jwtSecret, {
         expiresIn: 86400 // expires in 24 hours
@@ -92,10 +89,9 @@ module.exports = {
     compare(req.from_id, req.token).then(user => {
       delete req.token;
       req.sent_at = new Date();
-      return knex('messages').insert(req);
+      return messages.add(req);
     }).then(ids => {
-      return knex('users').join('messages', 'users.id', 'messages.from_id')
-        .where('messages.id', ids[0]).select('username', 'text', 'sent_at', 'from_id', 'to_id').first();
+      return messages.getMessage(ids[0]);
     }).then(message => {
       api.onSuccess('message', message);
     }).catch(error => api.onError(error));
@@ -103,9 +99,7 @@ module.exports = {
 
   getMessages: function(api, req) {
     authorize(req.token).then(user => {
-      return knex('users').join('messages', 'users.id', 'messages.from_id')
-        .where('from_id', user.id).orWhere('to_id', user.id)
-        .select('username', 'text', 'sent_at', 'from_id', 'to_id');
+      return messages.getMessages(user.id);
     }).then(messages => {
       api.onSuccess('messages', messages);
     }).catch(error => api.onError(error));
@@ -113,7 +107,7 @@ module.exports = {
 
   getUsers: function(api, req) {
     authorize(req.token).then(user => {
-      return knex('users').select('id', 'username', 'active');
+      return users.getUsers('id', 'username', 'active');
     }).then(users => {
       api.onSuccess('users', users)
     }).catch(error => api.onError(error));
@@ -121,7 +115,7 @@ module.exports = {
 
   activateUser: function(api, req) {
     authorize(req.token).then(user => {
-      knex('users').where('id', user.id).update({
+      users.update('id', user.id, {
         active: true,
       }).then((cols) => {
         if (cols === 1) {
@@ -136,7 +130,7 @@ module.exports = {
   },
 
   deactivateUser: function(api, user) {
-    knex('users').where('id', user.id).update({
+    users.update('id', user.id, {
       active: false,
     }).then((result) => {
       api.onSuccess('user', {
@@ -147,7 +141,7 @@ module.exports = {
   },
 
   deactivateAllUsers: function() {
-    knex('users').update({
+    users.updateAll({
       active: false,
     }).catch(error => console.log(error));
   },
@@ -188,7 +182,7 @@ function validateUser(token, validate) {
     if (!exist) return undefined;
     let decoded = jwt.verify(token, jwtSecret);
     if (decoded.id)
-      return knex('users').where('id', decoded.id).first();
+      return users.getUser('id', decoded.id);
     else return undefined;
   });
 }

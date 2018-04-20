@@ -1,28 +1,28 @@
 const app = require('./src/app');
-const db = require('./src/db');
+const model = require('./src/model');
 const api = require('./src/api');
 const handler = require('./src/handler');
 
 const WebSocket = require('ws');
 
-db.deactivateAllUsers();
+model.deactivateAllUsers();
 
 app.post('/api/login', (req, res) => {
-  db.loginUser(api('rest', res), {
+  model.loginUser(api('rest', res), {
     username: req.body.username,
     password: req.body.password,
   });
 });
 
 app.post('/api/users', (req, res) => {
-  db.registerUser(api('rest', res), {
+  model.registerUser(api('rest', res), {
     username: req.body.username,
     password: req.body.password,
   });
 });
 
 app.post('/api/messages', (req, res) => {
-  db.sendMessage(api('rest', res), {
+  model.sendMessage(api('rest', res), {
     from_id: req.body.from_id,
     to_id: req.body.to_id,
     text: req.body.text,
@@ -32,13 +32,13 @@ app.post('/api/messages', (req, res) => {
 });
 
 app.get('/api/messages', (req, res) => {
-  db.getMessages(api('rest', res), {
+  model.getMessages(api('rest', res), {
     token: req.headers.authorization,
   });
 });
 
 app.get('/api/users', (req, res) => {
-  db.getUsers(api('rest', res), {
+  model.getUsers(api('rest', res), {
     token: req.headers.authorization,
   });
 });
@@ -92,7 +92,7 @@ app.ws('/api/messages', (ws, req) => {
       var index = sockets[user.id].indexOf(ws);
       if (index !== -1) sockets[user.id].splice(index, 1);
       if (sockets[user.id].length === 0)
-        db.deactivateUser(api('ws', (data) => broadcast(data), 'deactivated'), user);
+        model.deactivateUser(api('ws', (data) => broadcast(data), 'deactivated'), user);
     }
     if (ws._socket)
       ws._socket.destroy();
