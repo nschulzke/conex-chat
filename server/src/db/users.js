@@ -1,18 +1,18 @@
 const knex = require('./knex/db');
 
 module.exports = {
-  getUser(field, value, columns) {
+  get(field, value, columns) {
     if (columns !== undefined)
       return this.getUser(field, value).select(...columns);
     else
       return knex('users').where(field, value).first();
   },
 
-  getUsers(...columns) {
-    return knex('users').select(...columns);
+  getAll() {
+    return knex('users').select('id', 'username', 'active');
   },
 
-  add(user) {
+  create(user) {
     return knex('users').insert(user);
   },
 

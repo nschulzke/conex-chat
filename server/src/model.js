@@ -1,4 +1,4 @@
-const users = require('./db/users');
+.getAllconst users = require('./db/users');
 const messages = require('./db/messages');
 
 // bcrypt setup
@@ -19,7 +19,7 @@ if (jwtSecret === undefined) {
 module.exports = {
   loginUser: function(api, req) {
     assertExist([req.username, req.password]).then(() => {
-      return users.getUser('username', req.username);
+      return users.get('username', req.username);
     }).then(user => {
       if (user === undefined) {
         throw {
@@ -60,7 +60,7 @@ module.exports = {
           message: "Invalid password: must be at least four characters"
         }
       }
-      return users.getUser('username', req.username);
+      return users.get('username', req.username);
     }).then(user => {
       if (user !== undefined) {
         throw {
@@ -70,13 +70,13 @@ module.exports = {
       }
       return bcrypt.hash(req.password, saltRounds);
     }).then(hash => {
-      return users.add({
+      return users.create({
         username: req.username,
         hash: hash,
         active: false,
       });
     }).then(ids => {
-      return users.getUser('id', ids[0], ['id', 'username']);
+      return users.get('id', ids[0], ['id', 'username']);
     }).then(user => {
       user.token = jwt.sign({ id: user.id }, jwtSecret, {
         expiresIn: 86400 // expires in 24 hours
@@ -89,9 +89,9 @@ module.exports = {
     compare(req.from_id, req.token).then(user => {
       delete req.token;
       req.sent_at = new Date();
-      return messages.add(req);
+      return messages.create(req);
     }).then(ids => {
-      return messages.getMessage(ids[0]);
+      return messages.get(ids[0]);
     }).then(message => {
       api.onSuccess('message', message);
     }).catch(error => api.onError(error));
@@ -99,7 +99,7 @@ module.exports = {
 
   getMessages: function(api, req) {
     authorize(req.token).then(user => {
-      return messages.getMessages(user.id);
+      return messages.getAll(user.id);
     }).then(messages => {
       api.onSuccess('messages', messages);
     }).catch(error => api.onError(error));
@@ -107,7 +107,7 @@ module.exports = {
 
   getUsers: function(api, req) {
     authorize(req.token).then(user => {
-      return users.getUsers('id', 'username', 'active');
+      return users.getAll();
     }).then(users => {
       api.onSuccess('users', users)
     }).catch(error => api.onError(error));
@@ -182,7 +182,7 @@ function validateUser(token, validate) {
     if (!exist) return undefined;
     let decoded = jwt.verify(token, jwtSecret);
     if (decoded.id)
-      return users.getUser('id', decoded.id);
+      return users.get('id', decoded.id);
     else return undefined;
   });
 }
